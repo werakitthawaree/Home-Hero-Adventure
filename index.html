@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Hero Adventure - ผู้พิทักษ์บ้านสะอาดน่าอยู่</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Prompt for Autism Friendly & Clear Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* High Contrast Mode Override */
+        body.high-contrast {
+            background-color: #000000 !important;
+            color: #FFFF00 !important;
+        }
+        body.high-contrast .bg-card-theme {
+            background-color: #1a1a1a !important;
+            border: 3px solid #FFFF00 !important;
+            color: #ffffff !important;
+        }
+        body.high-contrast button {
+            background-color: #333333 !important;
+            color: #FFFF00 !important;
+            border: 2px solid #FFFF00 !important;
+        }
+
+        /* Extra Large Font Mode */
+        body.xl-text {
+            font-size: 1.25rem !important;
+        }
+        body.xl-text .text-lg { font-size: 1.5rem !important; }
+        body.xl-text .text-xl { font-size: 1.75rem !important; }
+        body.xl-text .text-2xl { font-size: 2rem !important; }
+        body.xl-text .text-3xl { font-size: 2.5rem !important; }
+
+        /* Custom Drag & Touch styling */
+        .draggable-item {
+            cursor: grab;
+            touch-action: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.08);
+        }
+        .drop-zone {
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .drop-zone.drag-over {
+            background-color: rgba(59, 130, 246, 0.2) !important;
+            border-color: #3b82f6 !important;
+        }
+
+        /* Celebration Animations */
+        @keyframes starPop {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            70% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .star-animate {
+            animation: starPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Responsive Modal Fixes */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-sky-100 text-slate-800 min-h-screen flex flex-col justify-between transition-colors duration-300">
+
+    <!-- Accessibility Toolbar Header -->
+    <header class="bg-white/90 backdrop-blur shadow-md p-3 sm:p-4 sticky top-0 z-40 border-b-4 border-sky-300">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <!-- Game Title & Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="goToHome()">
+                <div class="bg-amber-400 text-white p-2 sm:p-3 rounded-2xl shadow-inner text-xl sm:text-2xl">
+                    <i class="fa-solid fa-house-chimney-crack"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-bold text-sky-900 leading-tight">Home Hero</h1>
+                    <p class="text-xs sm:text-sm text-sky-600 font-semibold">ผู้พิทักษ์บ้านสะอาดน่าอยู่</p>
+                </div>
+            </div>
+
+            <!-- Accessibility Controls Toolbar -->
+            <div class="flex items-center gap-2 bg-sky-50 p-1.5 rounded-2xl border border-sky-200">
+                <!-- Text-To-Speech Toggle -->
+                <button id="btn-tts" onclick="toggleTTS()" title="อ่านข้อความให้ฟัง" aria-label="เปิดปิดเสียงอ่าน"
+                    class="p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow hover:bg-emerald-600 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-volume-high text-base"></i>
+                    <span class="hidden sm:inline">เสียงอ่าน</span>
+                </button>
+
+                <!-- Audio SFX Toggle -->
+                <button id="btn-sfx" onclick="toggleSFX()" title="เสียงเอฟเฟกต์" aria-label="เปิดปิดเสียงเอฟเฟกต์"
+                    class="p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-indigo-500 text-white font-bold text-sm shadow hover:bg-indigo-600 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-music text-base"></i>
+                    <span class="hidden sm:inline">เอฟเฟกต์</span>
+                </button>
+
+                <!-- Font Size Adjuster -->
+                <button id="btn-font" onclick="toggleFontSize()" title="ขยายขนาดตัวอักษร" aria-label="ปรับขนาดตัวอักษร"
+                    class="p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-amber-500 text-white font-bold text-sm shadow hover:bg-amber-600 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-text-height text-base"></i>
+                    <span class="hidden sm:inline">ตัวอักษร</span>
+                </button>
+
+                <!-- High Contrast Toggle -->
+                <button id="btn-contrast" onclick="toggleContrast()" title="โหมดตัดสีชัดเจน" aria-label="โหมดความคมชัดสูง"
+                    class="p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-700 text-white font-bold text-sm shadow hover:bg-slate-800 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-circle-half-stroke text-base"></i>
+                    <span class="hidden sm:inline">โหมดสี</span>
+                </button>
+
+                <!-- Encyclopedia Button -->
+                <button onclick="openEncyclopedia()" title="คู่มืออุปกรณ์การงานอาชีพ" aria-label="เปิดคู่มืออุปกรณ์"
+                    class="p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-rose-500 text-white font-bold text-sm shadow hover:bg-rose-600 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-book-open text-base"></i>
+                    <span class="hidden sm:inline">คู่มือ</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="max-w-5xl mx-auto w-full p-4 flex-grow flex flex-col justify-center items-center">
+
+        <!-- Screen 1: Start / Welcome Screen -->
+        <section id="screen-start" class="w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-4 border-sky-200 text-center space-y-6 bg-card-theme my-auto">
+            <div class="relative inline-block">
+                <div class="w-28 h-28 sm:w-36 sm:h-36 bg-sky-100 rounded-full flex items-center justify-center mx-auto border-4 border-sky-400 text-sky-500 text-5xl sm:text-6xl shadow-inner">
+                    <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <span class="absolute -top-2 -right-2 bg-amber-400 text-amber-950 font-extrabold text-xs sm:text-sm px-3 py-1 rounded-full shadow">
+                    Universal Design
+                </span>
+            </div>
+
+            <div>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-sky-900 mb-2">ผจญภัยผู้พิทักษ์บ้าน</h2>
+                <p class="text-base sm:text-lg text-slate-600 max-w-lg mx-auto">
+                    มาร่วมเรียนรู้วิธีทำความสะอาดบ้าน คัดแยกขยะ และเลือกใช้อุปกรณ์อย่างถูกต้องกันเถอะ!
+                </p>
+            </div>
+
+            <!-- Player Name Input Field -->
+            <div class="max-w-md mx-auto space-y-2 text-left">
+                <label for="player-name" class="font-bold text-slate-700 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-user-astronaut text-sky-500"></i> กรอกชื่อผู้พิทักษ์บ้าน:
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="player-name" placeholder="พิมพ์ชื่อของคุณที่นี่..." value="ฮีโร่น้อย"
+                        class="w-full px-4 py-3 rounded-2xl border-2 border-sky-300 focus:outline-none focus:border-sky-500 text-lg font-semibold bg-sky-50 text-slate-800">
+                    <button onclick="speakText('กรุณากรอกชื่อผู้พิทักษ์บ้านแล้วกดปุ่มเริ่มเล่น')" 
+                        aria-label="ฟังคำอธิบายชื่อ"
+                        class="px-3 bg-sky-200 text-sky-700 rounded-2xl hover:bg-sky-300 text-lg">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Start Game Actions -->
+            <div class="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startGame()" 
+                    class="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xl rounded-2xl shadow-lg transform active:scale-95 transition flex items-center justify-center gap-3 border-b-4 border-emerald-700">
+                    <i class="fa-solid fa-play text-2xl"></i> เริ่มผจญภัยเลย!
+                </button>
+            </div>
+        </section>
+
+        <!-- Screen 2: Map Level Selection -->
+        <section id="screen-map" class="w-full hidden space-y-6 my-auto">
+            <div class="bg-white rounded-3xl p-6 shadow-lg border-4 border-sky-200 text-center bg-card-theme">
+                <div class="flex justify-between items-center border-b pb-4 mb-4">
+                    <div class="text-left">
+                        <span class="text-xs sm:text-sm font-bold text-sky-600 uppercase">ผู้พิทักษ์บ้าน:</span>
+                        <h3 id="display-player-name" class="text-xl sm:text-2xl font-extrabold text-sky-900">ฮีโร่น้อย</h3>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="bg-amber-100 text-amber-800 px-4 py-2 rounded-2xl font-extrabold flex items-center gap-2 border border-amber-300 text-lg">
+                            <i class="fa-solid fa-star text-amber-500 text-xl"></i>
+                            <span id="total-stars">0</span>
+                        </div>
+                        <div class="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-2xl font-extrabold flex items-center gap-2 border border-indigo-300 text-lg">
+                            <i class="fa-solid fa-trophy text-indigo-500 text-xl"></i>
+                            <span id="total-score">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 mb-2">เลือกรอบด่านห้องในบ้าน</h2>
+                <p class="text-slate-600 font-semibold mb-6">เลือกห้องที่ต้องการเข้าไปทำความสะอาดเพื่อสะสมดาว</p>
+
+                <!-- 4 Rooms Level Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                    <!-- Level 1: Bedroom -->
+                    <button onclick="selectLevel(1)" id="level-card-1"
+                        class="p-5 rounded-3xl bg-amber-50 border-4 border-amber-300 hover:border-amber-500 shadow-md text-left transition transform hover:-translate-y-1 relative overflow-hidden group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-amber-400 text-white flex items-center justify-center text-3xl shadow">
+                                <i class="fa-solid fa-bed"></i>
+                            </div>
+                            <div>
+                                <span class="bg-amber-200 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full">ด่านที่ 1</span>
+                                <h4 class="text-xl font-bold text-amber-950 mt-1">ห้องนอนสุดระเบียบ</h4>
+                                <div class="flex gap-1 text-amber-400 mt-1 text-sm" id="stars-level-1">
+                                    <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Level 2: Kitchen -->
+                    <button onclick="selectLevel(2)" id="level-card-2"
+                        class="p-5 rounded-3xl bg-emerald-50 border-4 border-emerald-300 hover:border-emerald-500 shadow-md text-left transition transform hover:-translate-y-1 relative overflow-hidden group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-3xl shadow">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <div>
+                                <span class="bg-emerald-200 text-emerald-900 text-xs font-bold px-2.5 py-0.5 rounded-full">ด่านที่ 2</span>
+                                <h4 class="text-xl font-bold text-emerald-950 mt-1">ห้องครัวสุขอนามัย</h4>
+                                <div class="flex gap-1 text-amber-400 mt-1 text-sm" id="stars-level-2">
+                                    <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Level 3: Bathroom -->
+                    <button onclick="selectLevel(3)" id="level-card-3"
+                        class="p-5 rounded-3xl bg-sky-50 border-4 border-sky-300 hover:border-sky-500 shadow-md text-left transition transform hover:-translate-y-1 relative overflow-hidden group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-sky-500 text-white flex items-center justify-center text-3xl shadow">
+                                <i class="fa-solid fa-bath"></i>
+                            </div>
+                            <div>
+                                <span class="bg-sky-200 text-sky-900 text-xs font-bold px-2.5 py-0.5 rounded-full">ด่านที่ 3</span>
+                                <h4 class="text-xl font-bold text-sky-950 mt-1">ห้องน้ำสะอาดสดชื่น</h4>
+                                <div class="flex gap-1 text-amber-400 mt-1 text-sm" id="stars-level-3">
+                                    <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Level 4: Garden -->
+                    <button onclick="selectLevel(4)" id="level-card-4"
+                        class="p-5 rounded-3xl bg-rose-50 border-4 border-rose-300 hover:border-rose-500 shadow-md text-left transition transform hover:-translate-y-1 relative overflow-hidden group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-3xl shadow">
+                                <i class="fa-solid fa-tree"></i>
+                            </div>
+                            <div>
+                                <span class="bg-rose-200 text-rose-900 text-xs font-bold px-2.5 py-0.5 rounded-full">ด่านที่ 4</span>
+                                <h4 class="text-xl font-bold text-rose-950 mt-1">สวนสวยร่มรื่น</h4>
+                                <div class="flex gap-1 text-amber-400 mt-1 text-sm" id="stars-level-4">
+                                    <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 3: Active Gameplay View -->
+        <section id="screen-gameplay" class="w-full hidden my-auto space-y-4">
+            <!-- Game Task Top Bar -->
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-lg border-4 border-sky-300 flex flex-wrap justify-between items-center gap-4 bg-card-theme">
+                <div class="flex items-center gap-3">
+                    <button onclick="goToMap()" aria-label="กลับไปแผนที่"
+                        class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition">
+                        <i class="fa-solid fa-arrow-left"></i> แผนที่
+                    </button>
+                    <div>
+                        <span id="current-room-tag" class="bg-sky-200 text-sky-900 text-xs font-extrabold px-3 py-1 rounded-full">
+                            ด่านห้อง
+                        </span>
+                        <h3 id="current-task-title" class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-1">ภารกิจ</h3>
+                    </div>
+                </div>
+
+                <!-- Progress Indicator & Hint Button -->
+                <div class="flex items-center gap-3">
+                    <button onclick="speakCurrentTask()" class="p-3 bg-emerald-100 text-emerald-800 rounded-2xl font-bold hover:bg-emerald-200 transition flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high text-xl"></i>
+                        <span class="hidden sm:inline">อ่านโจทย์</span>
+                    </button>
+                    <button onclick="showHint()" class="p-3 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-2xl font-extrabold shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-xl"></i>
+                        <span>คำใบ้</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Gameplay Stage Area -->
+            <div id="gameplay-stage" class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-sky-200 bg-card-theme min-h-[380px] flex flex-col justify-between">
+                <!-- Question Instruction Banner -->
+                <div class="bg-sky-50 rounded-2xl p-4 mb-6 border-2 border-sky-200 flex items-start gap-3">
+                    <div class="text-sky-600 text-2xl mt-0.5"><i class="fa-solid fa-circle-question"></i></div>
+                    <p id="task-instruction" class="text-lg sm:text-xl font-bold text-sky-950 leading-relaxed">
+                        คำแนะนำภารกิจ...
+                    </p>
+                </div>
+
+                <!-- Dynamic Minigame Canvas / Interactive Zone -->
+                <div id="interactive-zone" class="flex-grow flex justify-center items-center my-4">
+                    <!-- Content populated via JavaScript based on minigame type -->
+                </div>
+
+                <!-- Positive Feedback Banner (Hidden by default) -->
+                <div id="feedback-banner" class="hidden rounded-2xl p-4 text-center font-extrabold text-lg transition-all duration-300">
+                    <!-- Feedback message injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 4: Certificate / Final Victory -->
+        <section id="screen-certificate" class="w-full hidden my-auto">
+            <div class="bg-amber-50 rounded-3xl p-6 sm:p-10 shadow-2xl border-8 border-amber-300 text-center max-w-3xl mx-auto space-y-6 relative overflow-hidden bg-card-theme">
+                <div class="absolute -top-12 -right-12 text-amber-200/40 text-9xl pointer-events-none">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+
+                <div class="inline-block p-4 bg-amber-400 text-amber-950 rounded-full text-5xl shadow-lg star-animate">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div>
+                    <span class="text-amber-800 font-extrabold uppercase tracking-widest text-sm">ใบประกาศเกียรติคุณ</span>
+                    <h2 class="text-3xl sm:text-5xl font-black text-amber-950 mt-1">ยอดนักจัดการบ้าน</h2>
+                    <p class="text-amber-800 text-base sm:text-lg font-semibold mt-2">ขอมอบประกาศนียบัตรนี้ให้แก่</p>
+                    <h3 id="cert-player-name" class="text-2xl sm:text-4xl font-extrabold text-sky-900 my-2 underline decoration-sky-400">
+                        ผู้พิทักษ์บ้าน
+                    </h3>
+                    <p class="text-slate-700 font-medium max-w-md mx-auto">
+                        ผู้มีความมุ่งมั่น ทำความสะอาด คัดแยกขยะ และดูแลบ้านจนสะอาด น่าอยู่ สมบูรณ์แบบครบทุกด่าน!
+                    </p>
+                </div>
+
+                <!-- Badge Achievements Display -->
+                <div class="bg-white/80 rounded-2xl p-4 border-2 border-amber-200 flex justify-center gap-4 flex-wrap">
+                    <div class="p-3 bg-amber-100 text-amber-900 rounded-xl text-center w-24">
+                        <i class="fa-solid fa-shield-cat text-3xl text-amber-600 mb-1"></i>
+                        <p class="text-xs font-bold">ฮีโร่ห้องนอน</p>
+                    </div>
+                    <div class="p-3 bg-emerald-100 text-emerald-900 rounded-xl text-center w-24">
+                        <i class="fa-solid fa-kitchen-set text-3xl text-emerald-600 mb-1"></i>
+                        <p class="text-xs font-bold">เชฟความสะอาด</p>
+                    </div>
+                    <div class="p-3 bg-sky-100 text-sky-900 rounded-xl text-center w-24">
+                        <i class="fa-solid fa-shower text-3xl text-sky-600 mb-1"></i>
+                        <p class="text-xs font-bold">ผู้พิทักษ์สุขอนามัย</p>
+                    </div>
+                    <div class="p-3 bg-rose-100 text-rose-900 rounded-xl text-center w-24">
+                        <i class="fa-solid fa-leaf text-3xl text-rose-600 mb-1"></i>
+                        <p class="text-xs font-bold">มือโปรสวนสวย</p>
+                    </div>
+                </div>
+
+                <!-- Final Stats -->
+                <div class="flex justify-center gap-6 text-lg font-extrabold text-slate-800">
+                    <div>ดาวสะสมรวม: <span id="cert-stars" class="text-amber-500">12</span> <i class="fa-solid fa-star text-amber-400"></i></div>
+                    <div>คะแนนรวม: <span id="cert-score" class="text-indigo-600">1200</span> คะแนน</div>
+                </div>
+
+                <div class="flex gap-4 justify-center pt-2">
+                    <button onclick="goToMap()" class="px-8 py-3 bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-lg rounded-2xl shadow transition">
+                        <i class="fa-solid fa-map"></i> กลับหน้าแผนที่
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Encyclopedia / Guidebook Modal -->
+    <div id="modal-encyclopedia" class="fixed inset-0 z-50 hidden modal-backdrop flex justify-center items-center p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl border-4 border-rose-300 bg-card-theme overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 bg-rose-500 text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-book-open text-2xl"></i>
+                    <h3 class="text-xl sm:text-2xl font-extrabold">คู่มืออุปกรณ์การงานอาชีพ</h3>
+                </div>
+                <button onclick="closeEncyclopedia()" class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full font-bold text-xl flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Scrollable Content -->
+            <div class="p-6 overflow-y-auto flex-grow space-y-4" id="encyclopedia-list">
+                <!-- List items rendered dynamically -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-100 border-t text-center">
+                <button onclick="closeEncyclopedia()" class="px-6 py-2.5 bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-800">
+                    ปิดคู่มือ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessible Footer -->
+    <footer class="bg-white/80 border-t p-3 text-center text-xs sm:text-sm font-semibold text-slate-500">
+        <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <p>สื่อการเรียนรู้วิชาการงานอาชีพ • ออกแบบตามหลัก Universal Design</p>
+            <p class="text-sky-600"><i class="fa-solid fa-heart text-rose-500"></i> เพื่อเด็กทุกคนและผู้เรียนออทิสติก</p>
+        </div>
+    </footer>
+
+    <script>
+        /* ----------------------------------------------------
+           1. GAME STATE & ACCESSIBILITY CONFIGURATION
+        ---------------------------------------------------- */
+        let gameState = {
+            playerName: "ฮีโร่น้อย",
+            currentLevel: 1,
+            currentTaskIndex: 0,
+            totalStars: 0,
+            totalScore: 0,
+            levelProgress: { 1: { stars: 0, score: 0 }, 2: { stars: 0, score: 0 }, 3: { stars: 0, score: 0 }, 4: { stars: 0, score: 0 } },
+            settings: {
+                ttsEnabled: true,
+                sfxEnabled: true,
+                highContrast: false,
+                xlFont: false
+            }
+        };
+
+        /* Web Audio API Synthesizer for Clean Sound Effects without External Files */
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playSuccess() {
+                if (!gameState.settings.sfxEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.15); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.3); // G5
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            },
+            playGentleHint() {
+                if (!gameState.settings.sfxEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(329.63, now); // E4
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.2); // A4
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        };
+
+        /* ----------------------------------------------------
+           2. CURRICULUM DATA: LEVELS, TASKS & ENCYCLOPEDIA
+        ---------------------------------------------------- */
+        const encyclopediaData = [
+            { name: "ไม้กวาดดอกหญ้า", icon: "fa-broom", room: "ทั่วไป", desc: "ใช้สำหรับกวาดฝุ่นผง ขยะแห้ง บนพื้นไม้ พื้นกระเบื้อง หรือพื้นปูนขัดเรียบ" },
+            { name: "ไม้ถูพื้น", icon: "fa-soap", room: "ทั่วไป", desc: "ใช้ถูทำความสะอาดพื้นผิวให้สะอาด คราบฝุ่นหมดไป โดยใช้ร่วมกับน้ำยาถูพื้น" },
+            { name: "ผ้าเช็ดมือ/ผ้าขี้ริ้ว", icon: "fa-rugs", room: "ห้องครัว/ทั่วไป", desc: "ใช้เช็ดทำความสะอาดสิ่งของ โต๊ะ หรือเช็ดมือให้แห้งเพื่อสุขอนามัย" },
+            { name: "น้ำยาล้างจาน & สก๊อตช์ไบรต์", icon: "fa-pump-soap", room: "ห้องครัว", desc: "ใช้ทำความสะอาดจาน ชาม และคราบไขมันจากการประกอบอาหาร" },
+            { name: "แปรงขัดห้องน้ำ", icon: "fa-toilet-portable", room: "ห้องน้ำ", desc: "ใช้ขัดคราบสิ่งสกปรกในสุขภัณฑ์และพื้นห้องน้ำ" },
+            { name: "กรรไกรตัดกิ่ง", icon: "fa-scissors", room: "สวน", desc: "ใช้ตัดแต่งกิ่งไม้ขนาดเล็ก กิ่งไม้แห้ง เพื่อให้ต้นไม้เจริญเติบโตดี" }
+        ];
+
+        const gameLevels = {
+            1: {
+                name: "ห้องนอนสุดระเบียบ",
+                tag: "Level 1: Bedroom",
+                tasks: [
+                    {
+                        type: "select_tool",
+                        instruction: "พื้นห้องนอนมีฝุ่นผงแห้งประปราย ควรใช้อุปกรณ์ใดกวาดทำความสะอาด?",
+                        hint: "มองหาไม้กวาดที่ทำจากดอกหญ้าธรรมชาติสำหรับพื้นแห้งนะ 😊",
+                        options: [
+                            { id: "t1", name: "ไม้กวาดดอกหญ้า", icon: "fa-broom", correct: true },
+                            { id: "t2", name: "สายยางฉีดน้ำ", icon: "fa-hose", correct: false },
+                            { id: "t3", name: "กรรไกรตัดกิ่ง", icon: "fa-scissors", correct: false }
+                        ]
+                    },
+                    {
+                        type: "drag_sort",
+                        instruction: "ช่วยแยกประเภทสิ่งของในห้องนอนลงกล่องให้ถูกต้องทีนะ",
+                        hint: "เสื้อผ้าใส่ลงซะในตะกร้าผ้า ส่วนหนังสือวางไว้ในชั้นวางนะ",
+                        items: [
+                            { id: "i1", name: "เสื้อยืดที่ใส่แล้ว", category: "clothes", icon: "fa-shirt" },
+                            { id: "i2", name: "หนังสือเรียน", category: "books", icon: "fa-book" }
+                        ],
+                        targets: [
+                            { category: "clothes", name: "ตะกร้าผ้าซัก", icon: "fa-basket-shopping" },
+                            { category: "books", name: "ชั้นวางหนังสือ", icon: "fa-book-bookmark" }
+                        ]
+                    }
+                ]
+            },
+            2: {
+                name: "ห้องครัวสุขอนามัย",
+                tag: "Level 2: Kitchen",
+                tasks: [
+                    {
+                        type: "select_tool",
+                        instruction: "จานชามมีคราบอาหารเปรอะเปื้อน ควรใช้อุปกรณ์ใดล้างจาน?",
+                        hint: "ใช้น้ำยาล้างจานพร้อมฟองน้ำ เพื่อขจัดคราบมันได้ดีที่สุดจ้ะ",
+                        options: [
+                            { id: "t1", name: "น้ำยาล้างจาน & ฟองน้ำ", icon: "fa-pump-soap", correct: true },
+                            { id: "t2", name: "แปรงขัดพื้นโลหะ", icon: "fa-brush", correct: false },
+                            { id: "t3", name: "ไม้กวาดทางมะพร้าว", icon: "fa-broom", correct: false }
+                        ]
+                    },
+                    {
+                        type: "drag_sort",
+                        instruction: "คัดแยกขยะในครัวลงถังขยะให้ถูกประเภทกันเถอะ",
+                        hint: "เศษอาหารแยกไว้ถังขยะเปียก ส่วนขวดพลาสติกใส่ถังรีไซเคิลนะ",
+                        items: [
+                            { id: "i3", name: "เปลือกกล้วย", category: "wet", icon: "fa-bananas" },
+                            { id: "i4", name: "ขวดน้ำพลาสติก", category: "recycle", icon: "fa-bottle-water" }
+                        ],
+                        targets: [
+                            { category: "wet", name: "ถังขยะเปียก", icon: "fa-trash-can" },
+                            { category: "recycle", name: "ถังขยะรีไซเคิล", icon: "fa-recycle" }
+                        ]
+                    }
+                ]
+            },
+            3: {
+                name: "ห้องน้ำสะอาดสดชื่น",
+                tag: "Level 3: Bathroom",
+                tasks: [
+                    {
+                        type: "select_tool",
+                        instruction: "โถสุขภัณฑ์มีคราบสกปรก ควรใช้อุปกรณ์ใดขัดทำความสะอาด?",
+                        hint: "แปรงด้ามยาวขัดสุขภัณฑ์ช่วยขัดคราบออกได้ง่ายและปลอดภัยจ้ะ",
+                        options: [
+                            { id: "t1", name: "แปรงขัดสุขภัณฑ์", icon: "fa-toilet-portable", correct: true },
+                            { id: "t2", name: "ผ้าเช็ดหน้า", icon: "fa-rugs", correct: false },
+                            { id: "t3", name: "ไม้ถูพื้นขนนุ่ม", icon: "fa-soap", correct: false }
+                        ]
+                    }
+                ]
+            },
+            4: {
+                name: "สวนสวยร่มรื่น",
+                tag: "Level 4: Garden",
+                tasks: [
+                    {
+                        type: "select_tool",
+                        instruction: "ต้นไม้แห้งเหี่ยวต้องการน้ำ ควรใช้อุปกรณ์ใดรดน้ำต้นไม้?",
+                        hint: "ใช้บัวรดน้ำกระจายละอองน้ำให้ต้นไม้อย่างอ่อนโยนนะ",
+                        options: [
+                            { id: "t1", name: "บัวรดน้ำ", icon: "fa-faucet-drip", correct: true },
+                            { id: "t2", name: "แปรงขัดพื้น", icon: "fa-brush", correct: false },
+                            { id: "t3", name: "พัดลมไฟฟ้า", icon: "fa-fan", correct: false }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        /* ----------------------------------------------------
+           3. SPEECH SYNTHESIS (TTS) ACCESSIBILITY HELPER
+        ---------------------------------------------------- */
+        function speakText(text) {
+            if (!gameState.settings.ttsEnabled) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop ongoing speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'th-TH';
+                utterance.rate = 0.9; // Slightly slower for clarity
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function speakCurrentTask() {
+            const level = gameLevels[gameState.currentLevel];
+            const task = level.tasks[gameState.currentTaskIndex];
+            speakText(task.instruction);
+        }
+
+        /* ----------------------------------------------------
+           4. NAVIGATION & SCREEN CONTROLLERS
+        ---------------------------------------------------- */
+        function showScreen(screenId) {
+            ['screen-start', 'screen-map', 'screen-gameplay', 'screen-certificate'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function startGame() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (nameInput) gameState.playerName = nameInput;
+            document.getElementById('display-player-name').innerText = gameState.playerName;
+            
+            showScreen('screen-map');
+            speakText(`ยินดีต้อนรับคุณ ${gameState.playerName} เข้าสู่แผนที่ผู้พิทักษ์บ้าน เลือกด่านได้เลยครับ`);
+        }
+
+        function goToHome() {
+            showScreen('screen-start');
+        }
+
+        function goToMap() {
+            updateMapStats();
+            showScreen('screen-map');
+            speakText("หน้าเลือกด่านห้องในบ้าน");
+        }
+
+        function updateMapStats() {
+            let totalS = 0;
+            let totalSc = 0;
+            for (let lvl in gameState.levelProgress) {
+                totalS += gameState.levelProgress[lvl].stars;
+                totalSc += gameState.levelProgress[lvl].score;
+                
+                // Update Stars icons on level cards
+                const starsContainer = document.getElementById(`stars-level-${lvl}`);
+                if (starsContainer) {
+                    let starsHTML = '';
+                    for (let i = 0; i < 3; i++) {
+                        if (i < gameState.levelProgress[lvl].stars) {
+                            starsHTML += '<i class="fa-solid fa-star text-amber-400"></i>';
+                        } else {
+                            starsHTML += '<i class="fa-regular fa-star"></i>';
+                        }
+                    }
+                    starsContainer.innerHTML = starsHTML;
+                }
+            }
+            gameState.totalStars = totalS;
+            gameState.totalScore = totalSc;
+            document.getElementById('total-stars').innerText = totalS;
+            document.getElementById('total-score').innerText = totalSc;
+
+            // Check if all levels completed (at least 1 star each)
+            const allComplete = Object.values(gameState.levelProgress).every(p => p.stars > 0);
+            if (allComplete) {
+                setTimeout(showCertificate, 1000);
+            }
+        }
+
+        /* ----------------------------------------------------
+           5. GAMEPLAY ENGINE & MINIGAME BUILDERS
+        ---------------------------------------------------- */
+        function selectLevel(levelNum) {
+            gameState.currentLevel = levelNum;
+            gameState.currentTaskIndex = 0;
+            loadTask();
+            showScreen('screen-gameplay');
+        }
+
+        function loadTask() {
+            const level = gameLevels[gameState.currentLevel];
+            const task = level.tasks[gameState.currentTaskIndex];
+
+            // Update UI headers
+            document.getElementById('current-room-tag').innerText = level.tag;
+            document.getElementById('current-task-title').innerText = `${level.name} - ภารกิจที่ ${gameState.currentTaskIndex + 1}`;
+            document.getElementById('task-instruction').innerText = task.instruction;
+
+            // Hide feedback banner
+            const fb = document.getElementById('feedback-banner');
+            fb.classList.add('hidden');
+
+            // Render task minigame
+            const container = document.getElementById('interactive-zone');
+            container.innerHTML = '';
+
+            if (task.type === "select_tool") {
+                renderSelectToolMinigame(container, task);
+            } else if (task.type === "drag_sort") {
+                renderDragSortMinigame(container, task);
+            }
+
+            // Read instruction automatically
+            speakCurrentTask();
+        }
+
+        /* Minigame Type 1: Select Tool */
+        function renderSelectToolMinigame(container, task) {
+            const grid = document.createElement('div');
+            grid.className = "grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl";
+
+            task.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "p-6 rounded-3xl bg-sky-50 border-4 border-sky-200 hover:border-sky-400 active:scale-95 transition flex flex-col items-center gap-3 text-center shadow-md hover:shadow-lg group";
+                btn.onclick = () => handleToolSelection(opt, task);
+
+                btn.innerHTML = `
+                    <div class="w-20 h-20 rounded-2xl bg-sky-400 text-white flex items-center justify-center text-4xl shadow group-hover:bg-sky-500 transition">
+                        <i class="fa-solid ${opt.icon}"></i>
+                    </div>
+                    <span class="text-xl font-bold text-slate-800">${opt.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+
+            container.appendChild(grid);
+        }
+
+        function handleToolSelection(option, task) {
+            if (option.correct) {
+                handleTaskSuccess();
+            } else {
+                handleTaskRetry(task.hint);
+            }
+        }
+
+        /* Minigame Type 2: Drag and Drop Sorting */
+        function renderDragSortMinigame(container, task) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "w-full max-w-3xl space-y-8";
+
+            // Draggable Items Source Zone
+            const itemsZone = document.createElement('div');
+            itemsZone.className = "flex justify-center gap-4 flex-wrap p-4 bg-sky-50 rounded-2xl border-2 border-dashed border-sky-300 min-h-[100px]";
+            itemsZone.id = "items-source-zone";
+
+            task.items.forEach(item => {
+                const el = document.createElement('div');
+                el.className = "draggable-item px-5 py-3 bg-white rounded-2xl border-3 border-sky-400 shadow-md font-bold text-slate-800 flex items-center gap-2 cursor-grab text-lg";
+                el.draggable = true;
+                el.id = `drag-${item.id}`;
+                el.dataset.category = item.category;
+                el.innerHTML = `<i class="fa-solid ${item.icon} text-sky-500 text-2xl"></i> ${item.name}`;
+
+                // Touch & Mouse Drag Handlers
+                el.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', item.category);
+                    e.dataTransfer.setData('elementId', el.id);
+                });
+
+                itemsZone.appendChild(el);
+            });
+
+            // Target Drop Zones
+            const targetsGrid = document.createElement('div');
+            targetsGrid.className = "grid grid-cols-1 sm:grid-cols-2 gap-4";
+
+            task.targets.forEach(tgt => {
+                const zone = document.createElement('div');
+                zone.className = "drop-zone p-6 rounded-3xl bg-amber-50 border-4 border-amber-300 flex flex-col items-center gap-3 min-h-[160px] justify-center transition";
+                zone.dataset.category = tgt.category;
+
+                zone.innerHTML = `
+                    <div class="text-amber-600 text-3xl"><i class="fa-solid ${tgt.icon}"></i></div>
+                    <span class="font-extrabold text-amber-950 text-xl">${tgt.name}</span>
+                    <div class="dropped-container flex flex-wrap gap-2 justify-center w-full mt-2"></div>
+                `;
+
+                // Drag Events
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    const draggedCategory = e.dataTransfer.getData('text/plain');
+                    const draggedId = e.dataTransfer.getData('elementId');
+
+                    if (draggedCategory === tgt.category) {
+                        const draggedEl = document.getElementById(draggedId);
+                        zone.querySelector('.dropped-container').appendChild(draggedEl);
+                        draggedEl.draggable = false;
+                        draggedEl.classList.remove('draggable-item');
+                        draggedEl.classList.add('bg-emerald-100', 'border-emerald-400');
+
+                        checkDragSortComplete(task);
+                    } else {
+                        handleTaskRetry(task.hint);
+                    }
+                });
+
+                targetsGrid.appendChild(zone);
+            });
+
+            wrapper.appendChild(itemsZone);
+            wrapper.appendChild(targetsGrid);
+            container.appendChild(wrapper);
+        }
+
+        function checkDragSortComplete(task) {
+            const sourceZone = document.getElementById('items-source-zone');
+            if (sourceZone && sourceZone.children.length === 0) {
+                handleTaskSuccess();
+            }
+        }
+
+        /* ----------------------------------------------------
+           6. FEEDBACK & REINFORCEMENT HANDLERS
+        ---------------------------------------------------- */
+        function handleTaskSuccess() {
+            AudioFX.playSuccess();
+            const fb = document.getElementById('feedback-banner');
+            fb.className = "rounded-2xl p-4 text-center font-extrabold text-xl bg-emerald-100 border-2 border-emerald-400 text-emerald-900 block star-animate";
+            fb.innerHTML = `<i class="fa-solid fa-circle-check text-2xl text-emerald-600 mr-2"></i> เก่งมากเลย! คุณทำถูกต้องแล้วครับ 🎉`;
+
+            speakText("เก่งมากเลย คุณทำถูกต้องแล้วครับ");
+
+            // Award Stars & Progress
+            gameState.levelProgress[gameState.currentLevel].stars = 3;
+            gameState.levelProgress[gameState.currentLevel].score += 300;
+
+            setTimeout(() => {
+                const level = gameLevels[gameState.currentLevel];
+                if (gameState.currentTaskIndex + 1 < level.tasks.length) {
+                    gameState.currentTaskIndex++;
+                    loadTask();
+                } else {
+                    // Level Completed
+                    speakText(`ยินดีด้วย คุณผ่านด่าน ${level.name} เรียบร้อยแล้ว`);
+                    goToMap();
+                }
+            }, 2200);
+        }
+
+        function handleTaskRetry(hintText) {
+            AudioFX.playGentleHint();
+            const fb = document.getElementById('feedback-banner');
+            fb.className = "rounded-2xl p-4 text-center font-extrabold text-lg bg-amber-100 border-2 border-amber-300 text-amber-900 block";
+            fb.innerHTML = `<i class="fa-solid fa-face-smile text-amber-600 text-xl mr-2"></i> เกือบถูกแล้ว ลองดูอีกทีนะ 😊<br><span class="text-sm font-semibold text-amber-800">${hintText}</span>`;
+
+            speakText(`เกือบถูกแล้ว ลองดูอีกทีนะ ${hintText}`);
+        }
+
+        function showHint() {
+            const level = gameLevels[gameState.currentLevel];
+            const task = level.tasks[gameState.currentTaskIndex];
+            handleTaskRetry(task.hint);
+        }
+
+        function showCertificate() {
+            document.getElementById('cert-player-name').innerText = gameState.playerName;
+            document.getElementById('cert-stars').innerText = gameState.totalStars;
+            document.getElementById('cert-score').innerText = gameState.totalScore;
+            showScreen('screen-certificate');
+            speakText(`ยินดีด้วยคุณ ${gameState.playerName} คุณได้รับใบประกาศเกียรติคุณ ยอดนักจัดการบ้าน!`);
+        }
+
+        /* ----------------------------------------------------
+           7. ACCESSIBILITY TOGGLES & ENCYCLOPEDIA MODAL
+        ---------------------------------------------------- */
+        function toggleTTS() {
+            gameState.settings.ttsEnabled = !gameState.settings.ttsEnabled;
+            const btn = document.getElementById('btn-tts');
+            btn.className = gameState.settings.ttsEnabled ? 
+                "p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow flex items-center gap-1.5 transition" : 
+                "p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-400 text-white font-bold text-sm shadow flex items-center gap-1.5 transition";
+            speakText(gameState.settings.ttsEnabled ? "เปิดระบบเสียงอ่านแล้ว" : "");
+        }
+
+        function toggleSFX() {
+            gameState.settings.sfxEnabled = !gameState.settings.sfxEnabled;
+            const btn = document.getElementById('btn-sfx');
+            btn.className = gameState.settings.sfxEnabled ? 
+                "p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-indigo-500 text-white font-bold text-sm shadow flex items-center gap-1.5 transition" : 
+                "p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-400 text-white font-bold text-sm shadow flex items-center gap-1.5 transition";
+            if (gameState.settings.sfxEnabled) AudioFX.playSuccess();
+        }
+
+        function toggleFontSize() {
+            gameState.settings.xlFont = !gameState.settings.xlFont;
+            if (gameState.settings.xlFont) {
+                document.body.classList.add('xl-text');
+            } else {
+                document.body.classList.remove('xl-text');
+            }
+        }
+
+        function toggleContrast() {
+            gameState.settings.highContrast = !gameState.settings.highContrast;
+            if (gameState.settings.highContrast) {
+                document.body.classList.add('high-contrast');
+            } else {
+                document.body.classList.remove('high-contrast');
+            }
+        }
+
+        function openEncyclopedia() {
+            const list = document.getElementById('encyclopedia-list');
+            list.innerHTML = '';
+
+            encyclopediaData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-center gap-4";
+                card.innerHTML = `
+                    <div class="w-16 h-16 bg-rose-500 text-white rounded-xl flex items-center justify-center text-3xl shrink-0 shadow">
+                        <i class="fa-solid ${item.icon}"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-rose-600 uppercase">หมวดหมู่: ${item.room}</span>
+                        <h4 class="text-lg font-bold text-slate-800">${item.name}</h4>
+                        <p class="text-sm text-slate-600">${item.desc}</p>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            document.getElementById('modal-encyclopedia').classList.remove('hidden');
+            speakText("คู่มืออุปกรณ์การงานอาชีพ");
+        }
+
+        function closeEncyclopedia() {
+            document.getElementById('modal-encyclopedia').classList.add('hidden');
+        }
+
+        // Initialize default view on load
+        window.onload = function() {
+            showScreen('screen-start');
+        };
+    </script>
+</body>
+</html>
